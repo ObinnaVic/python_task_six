@@ -28,7 +28,6 @@ class StudentResponse(BaseModel):
 STUDENTS_FILE = "students.json"
 
 def load_students():
-    """Load students from JSON file"""
     try:
         if os.path.exists(STUDENTS_FILE):
             with open(STUDENTS_FILE, 'r') as f:
@@ -39,7 +38,6 @@ def load_students():
         return {}
 
 def save_students(students_data):
-    """Save students to JSON file"""
     try:
         with open(STUDENTS_FILE, 'w') as f:
             json.dump(students_data, f, indent=2)
@@ -50,15 +48,12 @@ def save_students(students_data):
         )
 
 def hash_password(password: str) -> str:
-    """Hash a password"""
     return pwd_context.hash(password)
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verify a password against its hash"""
     return pwd_context.verify(plain_password, hashed_password)
 
 def get_current_student(credentials: HTTPBasicCredentials = Depends(security)):
-    """Authenticate student using HTTP Basic Auth"""
     students = load_students()
     
     if credentials.username not in students:
