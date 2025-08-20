@@ -12,14 +12,12 @@ security = HTTPBasic()
 def register_student(student: StudentCreate):
     students = load_students()
     
-    # Check if student already exists
     if student.username in students:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Student already exists"
         )
     
-    # Hash password and store student
     hashed_password = hash_password(student.password)
     students[student.username] = {
         "username": student.username,
@@ -27,7 +25,6 @@ def register_student(student: StudentCreate):
         "grades": student.grades
     }
     
-    # Save to file
     save_students(students)
     
     return {"message": "Student registered successfully"}
