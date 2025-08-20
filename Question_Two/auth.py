@@ -21,10 +21,12 @@ def load_users():
         default_users = {
             "admin": {
                 "username": "admin",
+                "password": hash_password("admin123"),
                 "role": ADMIN_ROLE
             },
             "user1": {
                 "username": "user1",
+                "password": hash_password("user123"),
                 "role": CUSTOMER_ROLE
             }
         }
@@ -43,3 +45,40 @@ def save_users(users_data):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error saving user data: {str(e)}"
         )
+    
+def hash_password(password: str) -> str:
+    return pwd_context.hash(password)
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return pwd_context.verify(plain_password, hashed_password)
+
+def authenticate_user(credentials: HTTPBasicCredentials = Depends(security)):
+    users = load_users()
+    
+    if credentials.username not in users:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+    
+    user_data = users[credentials.username]
+    if not verify_password(credentials.password, user_data["password"]):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+    
+    return user_data
+
+def require_admin(user: dict = Depends(authenticate_user)):
+    if user["role"] != ADMIN_ROLE:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required"
+        )
+    return user
+
+def require_authenticated(user: dict = Depends(authenticate_user)):
+    return user
